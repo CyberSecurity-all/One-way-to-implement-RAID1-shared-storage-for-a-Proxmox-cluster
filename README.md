@@ -319,34 +319,34 @@ discover -t tcp -a 10.10.1.2 -s 4420
 ```
 systemctl enable nvmf-autoconnect.service  
 ```
-### 3.5. Preparing disks (changing sector size if necessary)
+### 3.5. Preparing disks (changing sector size if necessary)  
 
-Noda 1
-
+**Noda 1**  
+```
 root@pve1:~# nvme list
 Node Generic SN Model Namespace Usage Format FW Rev
 /dev/nvme1n1 /dev/ng1n1 S4EUNG0M328258D Samsung SSD 970 EVO Plus 250GB 1 214.99 GB / 250.06 GB 512 B + 0 B 1B2QEXM7
-/dev/nvme0n1 /dev/ng0n1 50026B7282A726A4 KINGSTON SKC3000S512G 1 512.11 GB / 512.11 GB 4 KiB + 0 B EIFK31.6
-
-Checking the block size
-
+/dev/nvme0n1 /dev/ng0n1 50026B7282A726A4 KINGSTON SKC3000S512G 1 512.11 GB / 512.11 GB 4 KiB + 0 B EIFK31.6  
+```
+**Checking the block size**  
+```
 root@pve1:~# nvme id-ns /dev/nvme0 -n 1 -H | grep &quot;LBA Format&quot;
 [6:5] : 0 Most significant 2 bits of Current LBA Format Selected
 [3:0] : 0x1 Least significant 4 bits of Current LBA Format Selected
 LBA Format 0 : Metadata Size: 0 bytes - Data Size: 512 bytes - Relative Performance: 0x2 Good
 LBA Format 1 : Metadata Size: 0 bytes - Data Size: 4096 bytes - Relative Performance: 0x1 Better (in use)
-root@pve1:~#
-
-If necessary, change to 4k
-
-root@pve1:~# nvme id-ns /dev/format --lbaf=1 /dev/nvme0n1
-
-3.6. Marking the disk.
-
-root@pve1:~# fdisk /dev/nvme0n1
-
-We save the markings to use when we replace the disk and now for the duplicate:
-
+root@pve1:~#  
+```
+**If necessary, change to 4k**  
+```
+root@pve1:~# nvme id-ns /dev/format --lbaf=1 /dev/nvme0n1  
+```
+### 3.6. Marking the disk.  
+```
+root@pve1:~# fdisk /dev/nvme0n1  
+```
+**We save the markings to use when we replace the disk and now for the duplicate:**  
+```
 root@pve1:~# sfdisk -d /dev/nvme0n1 > nvmeKINGSTON512.dump
 root@pve1:~# cat nvmeKINGSTON512.dump
 label: gpt
@@ -359,15 +359,15 @@ sector-size: 4096
 /dev/nvme0n1p1 : start= 4096, size= 262144, type=0657FD6D-A4AB-43C4-84E5-0933C84B4F4F, uuid=B21C1B97-64EE-6948-AA0F-0BBA8797EB91
 /dev/nvme0n1p2 : start= 266240, size= 104857600, type=0FC63DAF-8483-4772-8E79-3D69D8477DE4, uuid=E71CF74F-B553-5246-A649-3A5C45619225
 /dev/nvme0n1p3 : start= 105123840, size= 16777216, type=0FC63DAF-8483-4772-8E79-3D69D8477DE4, uuid=47A78E4D-FC8E-F54B-8DAF-D52A7908590C
-/dev/nvme0n1p4 : start= 121901056, size= 3125760, type=0657FD6D-A4AB-43C4-84E5-0933C84B4F4F, uuid=7F23E207-9E1A-1B42-962F-98BED3C1F479
-
-To restore this template later, you can do:
-
+/dev/nvme0n1p4 : start= 121901056, size= 3125760, type=0657FD6D-A4AB-43C4-84E5-0933C84B4F4F, uuid=7F23E207-9E1A-1B42-962F-98BED3C1F479  
+```
+**To restore this template later, you can do:**  
+```
 # sfdisk /dev/nvme0n1 < nvmeKINGSTON512.dump
-root@pve1:~#
-
-We split the second disk in the same way:
-
+root@pve1:~#  
+```
+**We split the second disk in the same way:**  
+```
 [root@pve99 ~]$ sfdisk /dev/nvme0n1 < nvmeKINGSTON512.dump
 [root@pve99 ~]$ sfdisk -d /dev/nvme0n1 > nvmeKINGSTON512_pve99.dump
 [root@pve99 ~]$ cat nvmeKINGSTON512_pve99.dump
@@ -382,26 +382,28 @@ sector-size: 4096
 /dev/nvme0n1p2 : start= 266240, size= 104857600, type=0FC63DAF-8483-4772-8E79-3D69D8477DE4, uuid=3CF0D8B4-A0C3-1145-B923-05D59A56B406
 /dev/nvme0n1p3 : start= 105123840, size= 16777216, type=0FC63DAF-8483-4772-8E79-3D69D8477DE4, uuid=35726BB3-0E33-C440-B5A1-14F31EE527FD
 /dev/nvme0n1p4 : start= 121901056, size= 3125760, type=0657FD6D-A4AB-43C4-84E5-0933C84B4F4F, uuid=4512150A-2074-5D44-90E3-58826E7A6152
-[root@pve99 ~]$
+[root@pve99 ~]$  
+```
+**Next we move on to the virtual machine:**  
 
-Next we move on to the virtual machine:
-3.7. Install mdadm:
-
-apt install mdadm
-
-3.8. Configuring Raid1 devices /dev/nvme1n1p2 , /dev/nvme2n1p2:
-
-nvme-list
-
-root@debvsan:/home/vov# nvme list
-
+### 3.7. Install mdadm:  
+```
+apt install mdadm  
+```
+### 3.8. Configuring Raid1 devices /dev/nvme1n1p2 , /dev/nvme2n1p2:  
+```
+nvme-list  
+```
+```
+root@debvsan:/home/vov# nvme list  
+```
 Node	Generic	SN	Model	Namespace Usage	Format	FW	Rev
 /dev/nvme2n1	/dev/ng2n1	9782709cba71d57d8e6b	pve99-KINGSTON	20	512.11 GB / 512.11 GB	4 KiB + 0 B	6.8.12-5
 /dev/nvme1n1	/dev/ng1n1	f1f5c6929bb211d228f4	pve1-KINGSTON	10	512.11 GB / 512.11 GB	4 KiB + 0 B	6.8.12-5
-
+```
 root@debvsan:/home/vov#
-mdadm --create /dev/md0 --level=1 --raid-devices=2 /dev/nvme1n1p2 /dev/nvme2n1p2
-
+mdadm --create /dev/md0 --level=1 --raid-devices=2 /dev/nvme1n1p2 /dev/nvme2n1p2  
+```
 Let's configure mdadm to reassemble the array during reboot, and then update the initrd to allow mdadm to stay there.
 
 mdadm --detail --scan | tee -a /etc/mdadm/mdadm.conf
