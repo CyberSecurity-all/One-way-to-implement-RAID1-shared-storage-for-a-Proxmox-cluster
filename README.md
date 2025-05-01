@@ -259,64 +259,67 @@ exit 0
 21 directories, 41 files
 [root@pve99 ~]$   
 ```
-2. A network is established between these nodes.
+## 2. A network is established between these nodes.
 
-In this case, two node ports are connected directly.
-3. On one of the nodes we create a virtual machine “VSAN105” (10.10.1.3) based on Linux with the following characteristics (512Mb, 3Gb) and install the packages: “mdadm” (we will build a RAID1 array from the corresponding sections of the nodes’ nvme disks: nvme disc. , connect…, and then support it), “tgt” (for translating the md0 iscsi target to two nodes), “lvm2” (from the resulting md0 array we do pvcreate, vgcreate).
-3.1 Preparing a virtual machine for use as a cluster storage provider.
-3.2. Let's select Debian as an operating system.
+In this case, two node ports are connected directly.  
 
-We install :
+## 3. On one of the nodes we create a virtual machine “VSAN105” (10.10.1.3) based on Linux with the following characteristics (512Mb, 3Gb) and install the packages: “mdadm” (we will build a RAID1 array from the corresponding sections of the nodes’ nvme disks: nvme disc. , connect…, and then support it), “tgt” (for translating the md0 iscsi target to two nodes), “lvm2” (from the resulting md0 array we do pvcreate, vgcreate).  
 
+### 3.1 Preparing a virtual machine for use as a cluster storage provider.  
+
+### 3.2. Let's select Debian as an operating system.  
+
+**We install :**  
+```
 apt install tgt
 
-nano /etc/tgt/conf.d/tgtpve.conf
-
-Filling:
-
+nano /etc/tgt/conf.d/tgtpve.conf  
+```
+**Filling:**  
+```
 <target iqn.1993-08.org.debian:01:9e746ebec3e>
    backing-store /dev/md0
    initiator-address 10.10.1.1
    initiator-address 10.10.1.2
-</target>
-
-3.3. Installing "lvm2":
-
-apt install lvm2
-
-3.4. Install "nvme-cli":
-
-apt install nvme-cli
-
-Loading modules at system startup:
-
-modprobe nvme_tcp && echo "nvme_tcp" > /etc/modules-load.d/nvme_tcp.conf
-
-Connect:
-
+</target>  
+```
+### 3.3. Installing "lvm2":  
+```
+apt install lvm2  
+```
+### 3.4. Install "nvme-cli":  
+```
+apt install nvme-cli  
+```
+**Loading modules at system startup:**  
+```
+modprobe nvme_tcp && echo "nvme_tcp" > /etc/modules-load.d/nvme_tcp.conf  
+```
+**Connect:**  
+```
 nvme discover -t tcp -a 10.10.1.1 -s 4420
 nvme connect -t tcp -n ora10 -a 10.10.1.1 -s 4420
 nvme discover -t tcp -a 10.10.1.2 -s 4420
-nvme connect -t tcp -n ora20 -a 10.10.1.2 -s 4420
-
-To connect at startup:
-
-nano /etc/nvme/discovery.conf
-
-Let's insert:
-
+nvme connect -t tcp -n ora20 -a 10.10.1.2 -s 4420  
+```
+**To connect at startup:**  
+```
+nano /etc/nvme/discovery.conf  
+```
+**Let's insert:**  
+```
 # Used for extracting default parameters for discovery
 #
 # Example:
 # --transport=<trtype> --traddr=<traddr> --trsvcid=<trsvcid> --host-traddr=<host-traddr> --host-iface=<host-iface>
 discover -t tcp -a 10.10.1.1 -s 4420
-discover -t tcp -a 10.10.1.2 -s 4420
-
-Then:
-
-systemctl enable nvmf-autoconnect.service
-
-3.5. Preparing disks (changing sector size if necessary)
+discover -t tcp -a 10.10.1.2 -s 4420  
+```
+**Then:**  
+```
+systemctl enable nvmf-autoconnect.service  
+```
+### 3.5. Preparing disks (changing sector size if necessary)
 
 Noda 1
 
