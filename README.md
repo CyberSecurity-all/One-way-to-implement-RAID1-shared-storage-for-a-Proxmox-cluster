@@ -464,27 +464,27 @@ iscsiadm -m discovery -t st -p 10.10.1.3
 	cp -rfa /ramboottmp/* ${rootmnt}
 	umount /ramboottmp  
 ```
-7.2. Save the file. And enter the command in the terminal as root:
+### 7.2. Save the file. And enter the command in the terminal as root:  
+```
+mkinitramfs -o /boot/initrd.img-ramboot  
+```
+### 7.3. Check that the file is created in the /boot folder and return the old local to its place in the /usr/share/initramfs-tools/scripts/local folder (or delete all our changes that we made in step 1).  
 
-mkinitramfs -o /boot/initrd.img-ramboot
-
-7.3. Check that the file is created in the /boot folder and return the old local to its place in the /usr/share/initramfs-tools/scripts/local folder (or delete all our changes that we made in step 1).
-7.4. Go to the folder: /etc and find the file: fstab, save a copy of it and edit it, look for something like this in the first lines:
-
-UUID= 321dba83-9a22-442b-b06b-185d7afe1088 / ext4 defaults 1 1
-
-and change to:
-
-none / tmpfs defaults 0 0
-
-7.5 Let's make the corresponding menu upon boot:
-
-file:
-
-nano /etc/grub.d/40_custom
-
-Content:
-
+### 7.4. Go to the folder: /etc and find the file: fstab, save a copy of it and edit it, look for something like this in the first lines:  
+```
+UUID= 321dba83-9a22-442b-b06b-185d7afe1088 / ext4 defaults 1 1  
+```
+**and change to:**  
+```
+none / tmpfs defaults 0 0  
+```
+### 7.5 Let's make the corresponding menu upon boot:  
+**file:**  
+```
+nano /etc/grub.d/40_custom  
+```
+**Content:**  
+```
 #!/bin/sh
 exec tail -n +3 $0
 # This file provides an easy way to add custom menu entries.  Simply type the
@@ -500,50 +500,56 @@ menuentry 'RAM-Debian GNU/Linux' --class debian --class gnu-linux --class gnu --
         linux   /boot/vmlinuz-6.1.0-28-amd64 root=UUID=321dba83-9a22-442b-b06b-185d7afe1088 ro  quiet splash toram
         echo    'Loading initial ramdisk ...'
         initrd  /boot/initrd.img-ramboot
-}
+}  
+```
+```
+update-grub  
+```
+**We get the grub menu.**  
 
-update-grub
+## 7.5. Now let's make ram.tar.gz, turn off the virtual machine, download a new virtual machine in liveCD mode, connecting the disk of this virtual machine.  
 
-We get the grub menu.
-7.5. Now let's make ram.tar.gz, turn off the virtual machine, download a new virtual machine in liveCD mode, connecting the disk of this virtual machine.
-
-Let's mount it to /mnt. Run:
-
+**Let's mount it to /mnt. Run:**  
+```
 # cd /mnt
-# tar -czf /mnt/boot/ram.tar.gz .
+# tar -czf /mnt/boot/ram.tar.gz .  
+```
+## 7.6. Now when loading the virtual machine, select the appropriate boot menu in RAM. After loading, disconnect the disk:  
 
-7.6. Now when loading the virtual machine, select the appropriate boot menu in RAM. After loading, disconnect the disk:
-7.6.1. Stop access to the disk:
+### 7.6.1. Stop access to the disk:  
 
-To do this, use the command:
+**To do this, use the command:**  
+```
+echo 1 > /sys/block/sda/device/delete`  
+```
+**This will disable the /dev/sda device at the kernel level. The disk will no longer be visible to the system.**  
 
-echo 1 > /sys/block/sda/device/delete`
+### 7.6.2. Let's check the status:  
 
-This will disable the /dev/sda device at the kernel level. The disk will no longer be visible to the system.
-
-7.6.2. Let's check the status:
-
-Make sure the drive does not appear in the list of devices:
-
-lsblk
-
-It will look something like this:
-
+**Make sure the drive does not appear in the list of devices:**  
+```
+lsblk  
+```
+**It will look something like this:**  
+```
 root@debvsan:/home/vov# lsblk
 NAME                            MAJ:MIN RM   SIZE RO TYPE  MOUNTPOINTS
 sda                               8:0    0     8G  0 disk  
 └─sda1                            8:1    0     8G  0 part  
-root@debvsan:/home/vov#
+root@debvsan:/home/vov#  
+```
+```
+echo 1 > /sys/block/sda/device/delete  
+```
+```
+lsblk  
+```
+### 7.6.3. Disconnecting a disk from a virtual machine via QEMU monitor:  
 
-echo 1 > /sys/block/sda/device/delete
-
-lsblk
-
-7.6.3. Disconnecting a disk from a virtual machine via QEMU monitor:
-7.6.3.1 Enter the QEMU monitor for a specific VM:
-
-qm monitor 105
-
+#### 7.6.3.1 Enter the QEMU monitor for a specific VM:  
+```
+qm monitor 105  
+```
 Check all devices connected to the VM:
 
 info block  
