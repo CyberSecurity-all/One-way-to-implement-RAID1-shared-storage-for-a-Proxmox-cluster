@@ -550,12 +550,12 @@ lsblk
 ```
 qm monitor 105  
 ```
-Check all devices connected to the VM:
-
+**Check all devices connected to the VM:**  
+```
 info block  
-
-This will show all the connected drives. You will see something like this:
-
+```
+**This will show all the connected drives. You will see something like this:**  
+```
 root@pve1:~# qm monitor 105 
 Entering QEMU Monitor for VM 105 - type 'help' for help
 qm> info block
@@ -563,20 +563,20 @@ drive-scsi0 (#block190): /dev/pve/vm-105-disk-1 (raw)
     Attached to:      scsi0
     Cache mode:       writeback, direct
     Detect zeroes:    unmap
-qm>
+qm>  
+```
+**Detach the disk:**  
+```
+device_del scsi0  
+```
+**Check what devices are connected:**  
+```
+info pci  
+```
+**You will see a list of PCI devices, including the SCSI controller.**  
 
-Detach the disk:
-
-device_del scsi0
-
-Check what devices are connected:
-
-info pci
-
-You will see a list of PCI devices, including the SCSI controller.
-
-For example :
-
+**For example :**  
+```
 Bus  9, device   1, function 0:
     SCSI controller: PCI device 1af4:1004
       PCI subsystem 1af4:0008
@@ -584,29 +584,29 @@ Bus  9, device   1, function 0:
       BAR0: I/O at 0x1000 [0x103f].
       BAR1: 32 bit memory at 0xfd800000 [0xfd800fff].
       BAR4: 64 bit prefetchable memory at 0xfc000000 [0xfc003fff].
-      id "virtioscsi0"
+      id "virtioscsi0"  
+```
+**Delete:**  
+```
+qm> device_del virtioscsi0  
+```
+**Logout:**  
+```
+q  
+```
+##### 7.3.4.2. Insert into the configuration file:  
+```
+root@pve1:~# nano /etc/pve/qemu-server/105.conf  
+```
+**Next: disabled=1**  
 
-Delete:
-
-qm> device_del virtioscsi0
-
-Logout:
-
-q
-
-7.3.4.2. Insert into the configuration file:
-
-root@pve1:~# nano /etc/pve/qemu-server/105.conf
-
-Next: disabled=1
-
-Example:
-
+**Example:**  
+```
 scsi0: local-lvm:vm-105-disk-1,disabled=1,aio=native,backup=0,discard=on,iothread=1,size=8G
-scsihw: virtio-scsi-single,disabled=1
-
-7.3.4.3. And during migration we will see:
-
+scsihw: virtio-scsi-single,disabled=1  
+```
+##### 7.3.4.3. And during migration we will see:  
+```
 ()
 Task viewer: VM 105 - Migrate
 OutputStatus
@@ -635,9 +635,12 @@ task started by HA resource agent
 2025-01-04 00:34:38 average migration speed: 457.0 MiB/s - downtime 73 ms
 2025-01-04 00:34:38 migration status: completed
 2025-01-04 00:34:42 migration finished successfully (duration 00:00:18)
-TASK OK
+TASK OK  
+```
+## 8. We transfer the virtual machine in Dtacenter to HA.  
 
-8. We transfer the virtual machine in Dtacenter to HA.
+**Using the Proxmox graphical interface, we transfer vm 105 to HA.**  
 
-Using the Proxmox graphical interface, we transfer vm 105 to HA.
-9. Notification, diagnostics, and troubleshooting of RAID1 problems are the responsibility of the utilities in the “mdadm” package.
+## 9. Notification, diagnostics, and troubleshooting of RAID1 problems are the responsibility of the utilities in the “mdadm” package.
+
+#SecureCoding #CloudSecurity #ThreatIntel #DataPrivacy
