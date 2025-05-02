@@ -397,18 +397,20 @@ nvme-list
 ```
 root@debvsan:/home/vov# nvme list  
 ```
-|Node	--      |Generic ------	SN	Model	Namespace Usage	Format	FW	Rev
-|/dev/nvme2n1	|/dev/ng2n1	9782709cba71d57d8e6b	pve99-KINGSTON	20	512.11 GB / 512.11 GB	4 KiB + 0 B	6.8.12-5
-|/dev/nvme1n1	|/dev/ng1n1	f1f5c6929bb211d228f4	pve1-KINGSTON	10	512.11 GB / 512.11 GB	4 KiB + 0 B	6.8.12-5
+|Node	        |Generic    |SN	                 |  Model	 | Namespace Usage | Format	         |FW	      |Rev      |
+|:-------------:|:---------:|:------------------:|:-------------:|:---------------:|:-------------------:|:----------:|:------_:|
+|/dev/nvme2n1	|/dev/ng2n1 |9782709cba71d57d8e6b|pve99-KINGSTON |20	           |512.11 GB / 512.11 GB| 4 KiB + 0 B| 6.8.12-5|
+|/dev/nvme1n1	|/dev/ng1n1 |f1f5c6929bb211d228f4|pve1-KINGSTON  |10	           |512.11 GB / 512.11 GB| 4 KiB + 0 B| 6.8.12-5|
+
 ```
 root@debvsan:/home/vov#
 mdadm --create /dev/md0 --level=1 --raid-devices=2 /dev/nvme1n1p2 /dev/nvme2n1p2  
 ```
-Let's configure mdadm to reassemble the array during reboot, and then update the initrd to allow mdadm to stay there.
-
+**Let's configure mdadm to reassemble the array during reboot, and then update the initrd to allow mdadm to stay there.**  
+```
 mdadm --detail --scan | tee -a /etc/mdadm/mdadm.conf
-update-initramfs –u
-
+update-initramfs –u  
+```
 4. Configure "open-iscsi" on the nodes.
 4.1. Install packages on each node:
 
