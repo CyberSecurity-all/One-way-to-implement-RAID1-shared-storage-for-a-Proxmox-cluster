@@ -411,44 +411,48 @@ mdadm --create /dev/md0 --level=1 --raid-devices=2 /dev/nvme1n1p2 /dev/nvme2n1p2
 mdadm --detail --scan | tee -a /etc/mdadm/mdadm.conf
 update-initramfs –u  
 ```
-4. Configure "open-iscsi" on the nodes.
-4.1. Install packages on each node:
+## 4. Configure "open-iscsi" on the nodes.  
 
-apt install open-iscsi multipath-tools
-
-Let's launch the service:
-
-systemctl start open-iscsi.service
-
-4.2. On the first node we connect to the virtual machine, we find the target and log in:
-
-iscsiadm -m discovery -t st -p 10.10.1.3
-
-4.3. On the second node:
-
+### 4.1. Install packages on each node:  
+```
+apt install open-iscsi multipath-tools  
+```
+**Let's launch the service:**  
+```
+systemctl start open-iscsi.service  
+```
+### 4.2. On the first node we connect to the virtual machine, we find the target and log in:  
+```
+iscsiadm -m discovery -t st -p 10.10.1.3  
+```
+### 4.3. On the second node:  
+```
 [root@pve99:~iscsiadm -m discovery -t st -p 10.10.1.3
-10.10.1.3:3260,1 iqn.1993-08.org.debian:01:9e746ebec3e
-
-5. On the virtual machine we do:
-
+10.10.1.3:3260,1 iqn.1993-08.org.debian:01:9e746ebec3e  
+```
+## 5. On the virtual machine we do:  
+```
 # pvcreate /dev/md0
-# vgcreate vg_nvme1 /dev/md0
+# vgcreate vg_nvme1 /dev/md0  
+```
+**On nodes and in the virtual machine, the command: vgs gives the display of the group: vg_nvme1.**  
 
-On nodes and in the virtual machine, the command: vgs gives the display of the group: vg_nvme1.
-6. In the Datacenter Storage LVM graphical shell, check the Shared box and select the nodes accordingly.
-7. We make a virtual machine to work only in RAM without a disk. We put it in HA. The system will be operational in case of failure of both nodes, both disks, or several network channels.
-7.1. In the file /usr/share/initramfs-tools/scripts/local, look for lines 179-185 (after making a backup of the file):
+## 6. In the Datacenter Storage LVM graphical shell, check the Shared box and select the nodes accordingly.  
 
+## 7. We make a virtual machine to work only in RAM without a disk. We put it in HA. The system will be operational in case of failure of both nodes, both disks, or several network channels.  
+
+### 7.1. In the file /usr/share/initramfs-tools/scripts/local, look for lines 179-185 (after making a backup of the file):  
+```
    checkfs "${ROOT}" root "${FSTYPE}"
 
 	# Mount root
 	# shellcheck disable=SC2086
 	if ! mount ${roflag} ${FSTYPE:+-t "${FSTYPE}"} ${ROOTFLAGS} "${ROOT}" "${rootmnt?}"; then
 		panic "Failed to mount ${ROOT} as root file system."
-	fi
-
-And we change this code to the following:
-
+	fi  
+```
+**And we change this code to the following:**  
+```
    #checkfs "${ROOT}" root "${FSTYPE}"
 
 	# Mount root
@@ -458,8 +462,8 @@ And we change this code to the following:
 	mount -t tmpfs -o size=100% none ${rootmnt}
 	cd ${rootmnt}
 	cp -rfa /ramboottmp/* ${rootmnt}
-	umount /ramboottmp
-
+	umount /ramboottmp  
+```
 7.2. Save the file. And enter the command in the terminal as root:
 
 mkinitramfs -o /boot/initrd.img-ramboot
